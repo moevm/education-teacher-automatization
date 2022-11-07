@@ -11,7 +11,9 @@
 `./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -t ghp_0XXXXXXXXXXXXXXXXX`  
 После ключа `-t` следует указать токен.
 ### Как получить токен
-TODO: Nataly
+[Инструкция](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
+
+[Прямая ссылка на настройки](https://github.com/settings/tokens)
 
 ## Часть скриптов перенесена из старого репозитория:
 https://github.com/OSLL/stepik-automation
