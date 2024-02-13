@@ -19,6 +19,7 @@
 import argparse
 import github
 from github.GithubException import UnknownObjectException
+from time import sleep
 
 GIVE = '-g'
 REMOVE = '-r'
@@ -57,6 +58,7 @@ def get_args():
 
 def give_an_access(collaborator, user_object, repo, pull=False):
     print("adding {} to collaborators ...".format(collaborator))
+    sleep(0.05)
     try:
         repo_object = user_object.get_repo(repo)
         print("{} exists".format(repo))
@@ -110,11 +112,13 @@ def auth(access_token):
 
 def processing_access_list(github_object, access_list, giving, pull=False):
     for obj in access_list:
+        sleep(0.05)
         repo_link, users = obj.split(':')
         print(repo_link, pull)
         repo_owner, repo = repo_link.split('/')
         print('Owner: {}, repo: {}'.format(repo_owner, repo))
         user_object = get_user_object(github_object, repo_owner)
+        sleep(0.05)
         change_an_access(users.split(','), user_object, repo, giving, pull)
 
 
