@@ -1,3 +1,4 @@
+
 # education-teacher-automatization
 Скрипты для автоматизации образовательных задач, в частности связанных с онлайн-курсами и репозиториями студентов
 
@@ -9,6 +10,10 @@
 `./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit -p True -t ghp_0XXXXXXXXXXXXXXXXX`  
 Добавление пользователей suiciderabbit и pro100kot в репозиторий github.com/moevm/cs_lectures с правами на запись:  
 `./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -t ghp_0XXXXXXXXXXXXXXXXX`  
+
+Добавление пользователей suiciderabbit и pro100kot в репозиторий github.com/moevm/cs_lectures с правами администратора:
+`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -a True -t ghp_0XXXXXXXXXXXXXXXXX`  
+
 После ключа `-t` следует указать токен.
 ### Как получить токен
 [Инструкция](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
