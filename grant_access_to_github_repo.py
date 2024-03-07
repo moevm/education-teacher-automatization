@@ -37,6 +37,7 @@ ADMIN_HELP = "add admin for user's accesses to the repo"
 BEGIN_OF_INFO = 13
 LEN_OF_HTTPS = 7
 FAIL_COLOR = '\033[91m'
+WARNING_COLOR = '\033[33m'
 END_COLOR = '\033[0m'
 
 
