@@ -17,9 +17,9 @@
 
 
 import argparse
-import github
-from github.GithubException import UnknownObjectException
 from time import sleep
+
+from utils import auth, change_an_access, get_user_object
 
 GIVE = '-g'
 REMOVE = '-r'
@@ -36,9 +36,6 @@ REMOVE_HELP = "withdraw user's accesses to the repo"
 ADMIN_HELP = "add admin for user's accesses to the repo"
 BEGIN_OF_INFO = 13
 LEN_OF_HTTPS = 7
-FAIL_COLOR = '\033[91m'
-WARNING_COLOR = '\033[33m'
-END_COLOR = '\033[0m'
 
 
 def get_args():
@@ -52,70 +49,14 @@ def get_args():
     parser.add_argument(REMOVE, action=ACTION,
                         dest=REMOVE_DEST, default=[],
                         help=REMOVE_HELP)
-    parser.add_argument(PULL,
+    parser.add_argument(PULL, type=bool,
                         default=False,
                         help=REMOVE_HELP)
-    parser.add_argument(ADMIN,
+    parser.add_argument(ADMIN, type=bool,
                         default=False,
                         help=ADMIN_HELP)
     results = parser.parse_args()
     return results
-
-
-def give_an_access(collaborator, user_object, repo, pull=False, admin=False):
-    print("adding {} to collaborators ...".format(collaborator))
-    sleep(0.05)
-    try:
-        repo_object = user_object.get_repo(repo)
-        print("{} exists".format(repo))
-    except UnknownObjectException:
-        print("{} does not exist, creating".format(repo))
-        repo_object = user_object.create_repo(repo)
-    try:
-        if admin:
-            repo_object.add_to_collaborators(collaborator, permission='admin')
-        elif pull:
-            repo_object.add_to_collaborators(collaborator, permission='pull')
-        else:
-            repo_object.add_to_collaborators(collaborator)
-    except UnknownObjectException:
-        print((FAIL_COLOR + "ERROR! {} login contains errors, skipping" + END_COLOR).format(
-            collaborator))
-
-
-def remove_an_access(collaborator, user_object, repo):
-    print("remove {} from collaborators ...".format(collaborator))
-    try:
-        user_object.get_repo(repo).remove_from_collaborators(collaborator)
-    except:
-        print("Collaborator {} does not exist or waits for invite".format(collaborator))
-
-
-def change_an_access(users, user_object, repo, give, pull=False, admin=False):
-    for user in users:
-        if give:
-            give_an_access(user, user_object, repo, pull, admin)
-        else:
-            remove_an_access(user, user_object, repo)
-
-
-def get_user_object(github_object, repo_owner):
-    try:
-        user = github_object.get_organization(repo_owner)
-    except UnknownObjectException:
-        user = github_object.get_user(repo_owner)
-    return user
-
-
-def auth(access_token):
-    try:
-        github_object = github.Github(access_token)
-        print("Authorization succeed")
-        print(github_object.__dict__)
-        return github_object
-    except:
-        print("Authorization failed")
-        exit()
 
 
 def processing_access_list(github_object, access_list, giving, pull=False, admin=False):

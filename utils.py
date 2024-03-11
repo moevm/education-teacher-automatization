@@ -1,18 +1,27 @@
-from github import UnknownObjectException
+import json
+import github
+from github import UnknownObjectException, GithubException
 from time import sleep
 
-from grant_access_to_github_repo import FAIL_COLOR, END_COLOR, WARNING_COLOR
+FAIL_COLOR = '\033[91m'
+WARNING_COLOR = '\033[33m'
+END_COLOR = '\033[0m'
 
 
-def create_repo_with_settings(user_object, name, is_private=True, create_readme=False):
-    print("creating repo {}; private:{}; readme:{}".format(name, is_private, create_readme))
+def create_repo_with_settings(user_object, name, is_private=False, create_readme=False):
     sleep(0.05)
     try:
         repo_object = user_object.get_repo(name)
         print(WARNING_COLOR + "{} exists, skipping create".format(name) + END_COLOR)
     except UnknownObjectException:
-        repo_object = user_object.create_repo(name, private=is_private, auto_init=create_readme)
-        print("done")
+        print("creating repo {}; private:{}; readme:{}".format(name, is_private, create_readme))
+        try:
+            repo_object = user_object.create_repo(name, private=is_private, auto_init=create_readme)
+            print("done")
+        except GithubException as e:
+            error = str(e.data['errors'][0]['message'])
+            print(FAIL_COLOR + "error '{}' with creating repo {}".format(error, name) + END_COLOR)
+            return False
 
     return repo_object
 
@@ -35,3 +44,43 @@ def give_an_access(repo_object, collaborator, pull=False, admin=False):
         return False
 
     return True
+
+
+def remove_an_access(repo_object, collaborator):
+    print("remove {} from collaborators ...".format(collaborator))
+    try:
+        repo_object.remove_from_collaborators(collaborator)
+    except:
+        print("Collaborator {} does not exist or waits for invite".format(collaborator))
+
+
+def change_an_access(users, user_object, repo, give, pull=False, admin=False):
+    repo_object = create_repo_with_settings(user_object, name=repo)
+
+    if not repo_object:
+        return False
+
+    for user in users:
+        if give:
+            give_an_access(repo_object, user, pull, admin)
+        else:
+            remove_an_access(repo_object, user)
+
+
+def get_user_object(github_object, repo_owner):
+    try:
+        user = github_object.get_organization(repo_owner)
+    except UnknownObjectException:
+        user = github_object.get_user(repo_owner)
+    return user
+
+
+def auth(access_token):
+    try:
+        github_object = github.Github(access_token)
+        print("Authorization succeed")
+        print(github_object.__dict__)
+        return github_object
+    except:
+        print("Authorization failed")
+        exit(0)

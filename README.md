@@ -20,7 +20,7 @@
 Создает репозитории и добавляет людей в коллабораторы репозитория беря данные csv таблицы.
 
 Примеры использования
-` ./get_access_to_github_from_csv.py -f table.csv -t ghp_0XXXXXXXXXXXXXXXXX`
+` ./create_github_repos_from_csv.py -f table.csv -t ghp_0XXXXXXXXXXXXXXXXX`
 
 Структура таблицы:
 ```
