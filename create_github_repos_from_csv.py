@@ -40,7 +40,7 @@ def read_table(filename):
     answer = []
     if not check_file_name(filename):
         print(FAIL_COLOR + "incorrect file extension. stop" + END_COLOR)
-        exit(0)
+        exit(1)
     try:
         with open(filename, newline='') as file:
             rows = csv.reader(file, delimiter=';')
@@ -56,7 +56,7 @@ def read_table(filename):
                                          admin_login_list=admin_login_list))
     except Exception as error:
         print(FAIL_COLOR + "error work with table: {}. stop".format(error) + END_COLOR)
-        exit(0)
+        exit(1)
 
     return answer
 
@@ -76,13 +76,17 @@ def get_args():
 
 def process_table(github_object, repo_config):
     users = set()
+    invitations = set()
     for config in repo_config:
         repo_owner, repo_name = config.name.split('/')
         user_object = get_user_object(github_object, repo_owner)
         repo_object = create_repo_with_settings(user_object, repo_name, is_private=config.is_private,
                                                 create_readme=config.create_readme)
+
         if not repo_object:
             continue
+
+        invitations.add("https://github.com/{}/invitations".format(repo_object.full_name))
 
         for user in config.read_login_list:
             if give_an_access(repo_object, user, pull=True):
@@ -99,6 +103,7 @@ def process_table(github_object, repo_config):
         print()
 
     print(f"added users: {'; '.join(users)}")
+    print("invitations: {}".format('\n'.join(invitations)))
 
 
 def main():

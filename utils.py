@@ -81,6 +81,6 @@ def auth(access_token):
         print("Authorization succeed")
         print(github_object.__dict__)
         return github_object
-    except:
-        print("Authorization failed")
-        exit(0)
+    except Exception as e:
+        print("Authorization failed. Error:{}".format(e))
+        exit(1)
