@@ -15,6 +15,24 @@
 `./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -a True -t ghp_0XXXXXXXXXXXXXXXXX`  
 
 После ключа `-t` следует указать токен.
+
+## get_access_to_github_from_csv.py
+Создает репозитории и добавляет людей в коллабораторы репозитория беря данные csv таблицы.
+
+Примеры использования
+` ./create_github_repos_from_csv.py -f table.csv -t ghp_0XXXXXXXXXXXXXXXXX`
+
+Структура таблицы:
+```
+<организация>/<название репозитория>;<приватный?(bool)>;<создать README?(bool)>;<логины тем, кому дать доступ на чтение(через запятую)>;<логины тем, кому дать доступ на запись(через запятую)>;<логины тем, кому дать админский доступ(через запятую)>
+```
+Пример таблицы:
+```
+TestOrg/TestA;True;False;User2;User1;User3  
+TestOrg/TestB;False;True;;User2,User3;  
+TestOrg/TestC;True;True;;;User1
+```
+
 ### Как получить токен
 [Инструкция](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
