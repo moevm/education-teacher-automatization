@@ -33,6 +33,11 @@ TestOrg/TestB;False;True;;User2,User3;
 TestOrg/TestC;True;True;;;User1
 ```
 
+Создание репозитория с помощью шаблона:
+
+Добавить флаг:
+`--template OrgName/Template`
+
 ### Как получить токен
 [Инструкция](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token)
 
