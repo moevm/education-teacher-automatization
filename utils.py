@@ -20,10 +20,16 @@ def create_repo_with_settings(user_object, name, is_private=False, create_readme
             if not template:
                 repo_object = user_object.create_repo(name, private=is_private, auto_init=create_readme)
             else:
-                repo_owner, repo = template.split('/')
-                template_user_object = get_user_object(github_object, repo_owner)
-                repo_object = user_object.create_repo_from_template(name, private=is_private,
-                                                                    repo=template_user_object.get_repo(repo))
+                try:
+                    repo_owner, repo = template.split('/')
+                    template_user_object = get_user_object(github_object, repo_owner)
+                    repo_object = user_object.create_repo_from_template(name, private=is_private,
+                                                                        repo=template_user_object.get_repo(repo))
+                except Exception as e:
+                    print(FAIL_COLOR + "error '{}' with creating repo {} from template {}".format(e, name, template) + END_COLOR)
+                    print(FAIL_COLOR + "Stop" + END_COLOR)
+                    exit(1)
+
             if type(branch_protection) is str:
                 #repo_object.get_branch(branch_protection).edit_protection(lock_branch=True)
                 pass
