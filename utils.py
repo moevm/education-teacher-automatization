@@ -1,6 +1,6 @@
 import json
 import github
-from github import UnknownObjectException, GithubException
+from github import UnknownObjectException, GithubException, Branch
 from time import sleep
 
 FAIL_COLOR = '\033[91m'
@@ -8,7 +8,8 @@ WARNING_COLOR = '\033[33m'
 END_COLOR = '\033[0m'
 
 
-def create_repo_with_settings(user_object, name, is_private=False, create_readme=False):
+def create_repo_with_settings(user_object, name, is_private=False, create_readme=False, template=False,
+                              github_object=False, branch_protection=False):
     sleep(0.05)
     try:
         repo_object = user_object.get_repo(name)
@@ -16,7 +17,23 @@ def create_repo_with_settings(user_object, name, is_private=False, create_readme
     except UnknownObjectException:
         print("creating repo {}; private:{}; readme:{}".format(name, is_private, create_readme))
         try:
-            repo_object = user_object.create_repo(name, private=is_private, auto_init=create_readme)
+            if not template:
+                repo_object = user_object.create_repo(name, private=is_private, auto_init=create_readme)
+            else:
+                try:
+                    repo_owner, repo = template.split('/')
+                    template_user_object = get_user_object(github_object, repo_owner)
+                    repo_object = user_object.create_repo_from_template(name, private=is_private,
+                                                                        repo=template_user_object.get_repo(repo))
+                except Exception as e:
+                    print(FAIL_COLOR + "error '{}' with creating repo {} from template {}".format(e, name, template) + END_COLOR)
+                    print(FAIL_COLOR + "Stop" + END_COLOR)
+                    exit(1)
+
+            if type(branch_protection) is str:
+                #repo_object.get_branch(branch_protection).edit_protection(lock_branch=True)
+                pass
+
             print("done")
         except GithubException as e:
             error = str(e.data['errors'][0]['message'])
