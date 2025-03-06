@@ -1,5 +1,7 @@
+import http.client
 import json
 import github
+import http
 from github import UnknownObjectException, GithubException, Branch
 from time import sleep
 
@@ -7,6 +9,8 @@ FAIL_COLOR = '\033[91m'
 WARNING_COLOR = '\033[33m'
 END_COLOR = '\033[0m'
 
+HOST_GITHUB_API = "api.github.com"
+OK = 200
 
 def create_repo_with_settings(user_object, name, is_private=False, create_readme=False, template=False,
                               github_object=False, branch_protection=False):
@@ -88,16 +92,57 @@ def get_user_object(github_object, repo_owner):
     try:
         user = github_object.get_organization(repo_owner)
     except UnknownObjectException:
-        user = github_object.get_user(repo_owner)
+        user = github_object.get_user()
     return user
 
+def token_probe_reqest(access_token):
+    conn = http.client.HTTPSConnection(HOST_GITHUB_API)
 
-def auth(access_token):
+    headers = {
+        "Authorization": "Bearer {}".format(access_token),
+        "User-Agent": "Python-http.client",
+        "Accept": "application/vnd.github+json"
+    }
+
     try:
-        github_object = github.Github(access_token)
-        print("Authorization succeed")
-        print(github_object.__dict__)
-        return github_object
-    except Exception as e:
-        print("Authorization failed. Error:{}".format(e))
+        conn.request("GET", "/user", headers=headers)
+
+        return conn.getresponse().status
+
+    except http.client.HTTPException as e:
+        print((FAIL_COLOR + "error '{}' with requesting user by token" + END_COLOR).format(e))
+
+    finally:
+        conn.close()
+
+def get_token_from_file(token_path):
+    try:
+        with open(token_path) as f:
+            token = f.readline()
+
+        return token
+    
+    except FileNotFoundError as e:
+        print(FAIL_COLOR + "error '{}'".format(e) + END_COLOR)
         exit(1)
+
+def auth(token_path):
+    token = get_token_from_file(token_path)
+
+    try:
+        token_status = token_probe_reqest(token)
+
+        if token_status == OK:
+            auth_token = github.Auth.Token(token)
+            github_object = github.Github(auth=auth_token)
+        else:
+            raise GithubException("Bad Credentials: {}".format(token_status))
+
+    except GithubException as e:
+        print(FAIL_COLOR + "Authorization failed. Error: {}".format(e)  + END_COLOR)
+        exit(1)
+
+    else:
+        print("Authorization succeed")
+
+    return github_object
