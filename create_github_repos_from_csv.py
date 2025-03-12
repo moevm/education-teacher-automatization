@@ -4,7 +4,7 @@ import argparse
 import csv
 
 from grant_access_to_github_repo import get_user_object, auth, TOKEN, TOKEN_DEST, TOKEN_HELP
-from utils import give_an_access, create_repo_with_settings, FAIL_COLOR, END_COLOR
+from utils import give_an_access, create_repo_with_settings, print_fail
 
 FILE = '-f'
 FILE_DEST = 'file'
@@ -44,7 +44,7 @@ def check_file_name(filename):
 def read_table(filename, template=False, branch_protection=False):
     answer = []
     if not check_file_name(filename):
-        print(FAIL_COLOR + "incorrect file extension. stop" + END_COLOR)
+        print_fail("incorrect file extension. stop")
         exit(1)
     try:
         with open(filename, newline='') as file:
@@ -61,7 +61,7 @@ def read_table(filename, template=False, branch_protection=False):
                                          admin_login_list=admin_login_list, template=template,
                                          branch_protection=branch_protection))
     except Exception as error:
-        print(FAIL_COLOR + "error work with table: {}. stop".format(error) + END_COLOR)
+        print_fail("error work with table: {}. stop".format(error))
         exit(1)
 
     return answer

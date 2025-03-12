@@ -1,4 +1,3 @@
-import http.client
 import json
 import github
 import http
@@ -10,14 +9,19 @@ WARNING_COLOR = '\033[33m'
 END_COLOR = '\033[0m'
 
 HOST_GITHUB_API = "api.github.com"
-OK = 200
+
+def print_fail(message):
+    print(FAIL_COLOR + message + END_COLOR)
+
+def print_warning(message):
+    print(WARNING_COLOR + message + END_COLOR)
 
 def create_repo_with_settings(user_object, name, is_private=False, create_readme=False, template=False,
                               github_object=False, branch_protection=False):
     sleep(0.05)
     try:
         repo_object = user_object.get_repo(name)
-        print(WARNING_COLOR + "{} exists, skipping create".format(name) + END_COLOR)
+        print_warning("{} exists, skipping create".format(name))
     except UnknownObjectException:
         print("creating repo {}; private:{}; readme:{}".format(name, is_private, create_readme))
         try:
@@ -30,8 +34,8 @@ def create_repo_with_settings(user_object, name, is_private=False, create_readme
                     repo_object = user_object.create_repo_from_template(name, private=is_private,
                                                                         repo=template_user_object.get_repo(repo))
                 except Exception as e:
-                    print(FAIL_COLOR + "error '{}' with creating repo {} from template {}".format(e, name, template) + END_COLOR)
-                    print(FAIL_COLOR + "Stop" + END_COLOR)
+                    print_fail("error '{}' with creating repo {} from template {}".format(e, name, template))
+                    print_fail("Stop")
                     exit(1)
 
             if type(branch_protection) is str:
@@ -41,7 +45,7 @@ def create_repo_with_settings(user_object, name, is_private=False, create_readme
             print("done")
         except GithubException as e:
             error = str(e.data['errors'][0]['message'])
-            print(FAIL_COLOR + "error '{}' with creating repo {}".format(error, name) + END_COLOR)
+            print_fail("error '{}' with creating repo {}".format(error, name))
             return False
 
     return repo_object
@@ -59,8 +63,7 @@ def give_an_access(repo_object, collaborator, pull=False, admin=False):
         else:
             repo_object.add_to_collaborators(collaborator)
     except UnknownObjectException:
-        print((FAIL_COLOR + "ERROR! {} login contains errors, skipping" + END_COLOR).format(
-            collaborator))
+        print_fail("ERROR! {} login contains errors, skipping".format(collaborator))
 
         return False
 
@@ -101,7 +104,7 @@ def token_probe_reqest(access_token):
     headers = {
         "Authorization": "Bearer {}".format(access_token),
         "User-Agent": "Python-http.client",
-        "Accept": "application/vnd.github+json"
+        "Accept" : "application/vnd.github+json"
     }
 
     try:
@@ -110,7 +113,7 @@ def token_probe_reqest(access_token):
         return conn.getresponse().status
 
     except http.client.HTTPException as e:
-        print((FAIL_COLOR + "error '{}' with requesting user by token" + END_COLOR).format(e))
+        print_fail("error '{}' with requesting user by token".format(e))
 
     finally:
         conn.close()
@@ -118,31 +121,27 @@ def token_probe_reqest(access_token):
 def get_token_from_file(token_path):
     try:
         with open(token_path) as f:
-            token = f.readline()
+            token = f.readline().rstrip()
 
         return token
     
     except FileNotFoundError as e:
-        print(FAIL_COLOR + "error '{}'".format(e) + END_COLOR)
+        print_fail("error '{}'".format(e))
         exit(1)
 
 def auth(token_path):
     token = get_token_from_file(token_path)
 
-    try:
-        token_status = token_probe_reqest(token)
+    token_status = token_probe_reqest(token)
 
-        if token_status == OK:
-            auth_token = github.Auth.Token(token)
-            github_object = github.Github(auth=auth_token)
-        else:
-            raise GithubException("Bad Credentials: {}".format(token_status))
+    if token_status == http.HTTPStatus.OK:
+        auth_token = github.Auth.Token(token)
+        github_object = github.Github(auth=auth_token)
 
-    except GithubException as e:
-        print(FAIL_COLOR + "Authorization failed. Error: {}".format(e)  + END_COLOR)
-        exit(1)
-
-    else:
         print("Authorization succeed")
 
-    return github_object
+        return github_object
+    else:
+        print_fail("Authorization failed: Bad Credentials. Token status is {}".format(token_status))
+        exit(1)
+
