@@ -1,0 +1,47 @@
+# Byte-compiled / optimized Python files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+.venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+
+# Dependency directories
+auto_results/
+node_modules/
+venv/
+env/
+.venv/
+
+# Compiled Python files
+*.pyc
+
+# Logs and databases
+# *.log
+*.sql
+*.sqlite
+
+.DS_Store
+Thumbs.db
+
+Pipfile
+Pipfile.lock
+
+.ipynb_checkpoints/
+
+.mypy_cache/
+
+minutes
+
+*.html
+
+# sim results
+results/*
