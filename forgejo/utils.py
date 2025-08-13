@@ -26,25 +26,32 @@ def create_repo_with_settings(session, owner, name, is_private=False, create_rea
     create_data = {
         "name": name,
         "private": is_private,
-        "auto_init": create_readme
+        "auto_init": create_readme,
+        "description": f"Repository {name} in {owner}"
     }
     
     if template:
         template_owner, template_repo = template.split('/')
         create_url = f"{FORGEJO_API_BASE}/repos/{template_owner}/{template_repo}/generate"
         create_data["owner"] = owner
+        response = session.post(create_url, json=create_data)
     else:
-        org_check = session.get(f"{FORGEJO_API_BASE}/orgs/{owner}")
-        create_url = f"{FORGEJO_API_BASE}/orgs/{owner}/repos" if org_check.status_code == 200 else f"{FORGEJO_API_BASE}/user/repos"
+        create_url = f"{FORGEJO_API_BASE}/orgs/{owner}/repos"
+        response = session.post(create_url, json=create_data)
+        if response.status_code not in [201, 200]:
+            error = response.json().get('message', 'Unknown error')
+            print_fail(f"Error creating repo in organization {owner}/{name}: {error}")
+            return None
     
-    response = session.post(create_url, json=create_data)
-    if response.status_code not in [201, 200]:
-        error = response.json().get('message', 'Unknown error')
-        print_fail(f"Error creating repo {owner}/{name}: {error}")
-        return None
+    if response.status_code in [201, 200]:
+        repo_data = response.json()
+        actual_owner = repo_data['owner']['login']
+        print(f"Created repo {actual_owner}/{name}")
+        return repo_data
     
-    print(f"Created repo {owner}/{name}")
-    return response.json()
+    error = response.json().get('message', 'Unknown error')
+    print_fail(f"Error creating repo {owner}/{name}: {error}")
+    return None
 
 def give_an_access(session, owner, repo, collaborator, permission='write'):
     url = f"{FORGEJO_API_BASE}/repos/{owner}/{repo}/collaborators/{collaborator}"

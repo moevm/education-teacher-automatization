@@ -18,7 +18,7 @@
 TODO: перевести на работу с Forgejo
 
 ### Как получить токен
-#### Токен для добавление людей в репо
+#### Токен через curl
 Самый простой способ -- послать запос:
 ```bash
 curl -X POST -H "Content-Type: application/json" -u <USER_NAME>:<PASSWORD> https://<HOST>/api/v1/users/<USER_NAME>/tokens -d '{"name":"<TOKEN_NAME>", "scopes": ["read:user", "write:repository"]}'
@@ -35,14 +35,9 @@ curl -X POST -H "Content-Type: application/json" -u <USER_NAME>:<PASSWORD> https
 curl -X POST -H "Content-Type: application/json" -u kke:SOME_PASSWORD https://git.moevm.info/api/v1/users/kke/tokens -d '{"name":"token_name25", "scopes": ["read:user", "write:repository"]}'
 ```
 
-#### Токен для создания репо [пока не работает]
-```bash
-curl -X POST -H "Content-Type: application/json" -u kke:SOME_PASSWORD https://git.moevm.info/api/v1/users/kke/tokens -d '{"name":"token_name25", "scopes": ["write:user", "write:repository"]}'
-```
+#### Токен через WEB UI
 
-Нужны права `write:user`, однако пока не понятно, как сделать не от лица пользователя, а от лица организации (сейчас с созданным выше токеном можно сделать репо от лица пользователя `kke`). 
-
-
+https://{FORGEJO_HOST}/user/settings/applications -- перейдите по ссылке и выберите с какими провами будет токен.
 
 ### Что делать с токеном
 Полученный токен положите в файл и укажите путь к нему, при запуске программы
