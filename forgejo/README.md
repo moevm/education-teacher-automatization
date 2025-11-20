@@ -1,53 +1,128 @@
+# Скрипт для управления доступом к репозиториям в Forgejo
 
-# Forgejo скрипты
+## **Создание токенов**
 
-## grant_access_to_github_repo.py
-Добавляет людей в коллабораторы репозитория. Есть возможность добавить как на чтение, так и на запись  
-Примеры использования
+**Важно:** 
+- Для **локального Forgejo** используйте `http://<FORGEJO_HOST>`
+- Для **развернутого на сервере Forgejo** используйте `https://<FORGEJO_HOST>>`
 
-Добавление пользователя suiciderabbit в репозиторий github.com/moevm/cs_lectures с правами только на чтение:  
-`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit -p True -t /path/to/token/file`  
-Добавление пользователей suiciderabbit и pro100kot в репозиторий github.com/moevm/cs_lectures с правами на запись:  
-`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -t /path/to/token/file`  
+FORGEJO_HOST - актуальный домен
 
-Добавление пользователей suiciderabbit и pro100kot в репозиторий github.com/moevm/cs_lectures с правами администратора:
-`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -a True -t /path/to/token/file`  
+**Через WEB UI:**
+1. Залогиньтесь в Forgejo
+2. Перейдите: **Настройки** → **Приложения** → **Сгенерировать новый токен**
+3. Укажите имя токена
+4. Выберите права:
+	repo (обязательно)
+	admin:org (для работы с организациями)
+	write:org (для управления доступом)
+5. Сохраните токен в файл
 
-## get_access_to_github_from_csv.py
-
-TODO: перевести на работу с Forgejo
-
-### Как получить токен
-#### Токен через curl
-Самый простой способ -- послать запос:
+**Через API:**
+Используйте учетные данные **администратора** или **пользователя с правами** создавать токены:
 ```bash
-curl -X POST -H "Content-Type: application/json" -u <USER_NAME>:<PASSWORD> https://<HOST>/api/v1/users/<USER_NAME>/tokens -d '{"name":"<TOKEN_NAME>", "scopes": ["read:user", "write:repository"]}'
+curl -X POST \
+	-H "Content-Type: application/json" \
+	-u <ADMIN_USERNAME>:<ADMIN_PASSWORD> \
+	http://<FORGEJO_HOST>/api/v1/users/<BOT_USERNAME>/tokens \
+	-d '{"name":"<TOKEN_NAME>", "scopes": ["repo", "write:org"]}'
 ```
-Подставьте:
-+ USER_NAME -- имя пользователями [нужен еще и в ссылке -- будьте внимательны]
-+ PASSWORD -- пароль пользователя
-+ HOST -- домен, на котором равзернут Forgejo
-+ TOKEN_NAME -- имя токена (должно быть уникальное)
 
-Пример:
+Параметры:
+
+ADMIN_USERNAME - логин администратора/пользователя с правами
+
+ADMIN_PASSWORD - пароль администратора
+
+BOT_USERNAME - логин бота, для которого создается токен
+
+TOKEN_NAME - уникальное имя токена
+
+scopes - права доступа (рекомендуемые: repo, write:org)
+
+
+## **Настройка организаций**
+
+Создание организации через WEB UI:
+1. **Профиль** → **Ваши организации** → **Создать организацию**
+2. Заполните:
+   - Название
+   - Описание (опционально)
+3. Нажмите **Создать организацию**
+
+Создание организации через API:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -u kke:SOME_PASSWORD https://git.moevm.info/api/v1/users/kke/tokens -d '{"name":"token_name25", "scopes": ["read:user", "write:repository"]}'
+curl -X POST -H "Authorization: token <TOKEN>" \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testorg", "description":"Test organization"}' \
+  http://<FORGEJO_HOST>/api/v1/orgs
+```
+TOKEN - используйте токен администратора, созданный в разделе "Создание токенов"
+
+## Использование скрипта
+
+Базовый синтаксис:
+```bash
+python3 grant_access_to_github_repo.py -t <token_file> [OPTIONS]
 ```
 
-#### Токен через WEB UI
+Опции:
 
-https://{FORGEJO_HOST}/user/settings/applications -- перейдите по ссылке и выберите с какими провами будет токен.
+`-t TOKEN` Путь к файлу с токеном (обязательно) `-t token.txt`
 
-### Что делать с токеном
-Полученный токен положите в файл и укажите путь к нему, при запуске программы
+`-g SPEC` Добавить доступ `-g "org/repo:user1,user2"`
 
-### Доп настройки при смене домена
+`-r SPEC` Удалить доступ `-r "org/repo:user1"`
 
-В util.py:
-```py
-FORGEJO_HOST = "git.moevm.info"
-FORGEJO_API_BASE = f"https://{FORGEJO_HOST}/api/v1"
+`-p` Read-only доступ (pull) `-p -g "org/repo:user1"`
+
+`-a` Admin доступ | `-a -g "org/repo:user1"`
+
+### Уровни доступа:
+Read `-p` просмотр, клонирование
+Write (по умолчанию) + запись, создание PR
+Admin `-a`+ управление настройками
+
+# Скрипт для создания репозиториев Forgejo из CSV файла
+**Формат CSV файла**
+Файл должен иметь расширение .csv и содержать данные в следующем формате (разделитель - точка с запятой):
+```bash
+<организация>/<название репозитория>;<приватный?(bool)>;<создать README?(bool)>;<логины тем, кому дать доступ на чтение(через запятую)>;<логины тем, кому дать доступ на запись(через запятую)>;<логины тем, кому дать админский доступ(через запятую)>
+```
+**Пример содержимого CSV:**
+```bash
+myorg/myrepo1;true;true;user1,user2;user3;user4
+myorg/myrepo2;false;false;user5;;user6
+myorg/myrepo3;true;true;;user7,user8;
 ```
 
-Заменить FORGEJO_HOST на актуальный домен.
+## **Использование**
+```bash
+python3 create_github_repos_from_csv.py -t <файл_с_токеном> -f <csv_файл>
+```
+
+**Параметры**
+`-t`, `--token` - путь к файлу с токеном доступа (обязательно)
+
+`-f`, `--file` - путь к CSV файлу с данными (обязательно)
+
+`--template` - использовать шаблонный репозиторий (опционально)
+
+`--branch_protection` - включить защиту веток (опционально)
+
+## **Примеры использования**
+```bash
+# Базовое создание репозиториев
+python3 create_github_repos_from_csv.py -t token.txt -f repos.csv
+
+# Создание с использованием шаблона
+python3 create_github_repos_from_csv.py -t token.txt -f repos.csv --template owner/template-repo
+
+# Создание с защитой веток
+python3 create_github_repos_from_csv.py -t token.txt -f repos.csv --branch_protection
+```
+**Выходные данные**
+
+Список добавленных пользователей
+Ссылки на страницы приглашений для каждого репозитория

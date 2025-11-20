@@ -31,9 +31,6 @@ class RepoConfig:
                                 self.read_login_list, self.write_login_list,
                                 self.admin_login_list)
 
-class ForgejoError(Exception):
-    pass
-
 def split_logins(logins_str, delimiter=','):
     return [login.lower() for login in logins_str.split(delimiter)]
 
@@ -43,7 +40,7 @@ def check_file_name(filename):
 def read_table(filename, template=False, branch_protection=False):
     answer = []
     if not check_file_name(filename):
-        raise ForgejoError("Incorrect file extension. Expected .csv")
+        raise ValueError("Incorrect file extension. Expected .csv")
     try:
         with open(filename, newline='') as file:
             rows = csv.reader(file, delimiter=';')
@@ -58,10 +55,8 @@ def read_table(filename, template=False, branch_protection=False):
                                          read_login_list=read_login_list, write_login_list=write_login_list,
                                          admin_login_list=admin_login_list, template=template,
                                          branch_protection=branch_protection))
-    except FileNotFoundError:
-        raise ForgejoError(f"File not found: {filename}")
     except Exception as e:
-        raise ForgejoError(f"Error reading table: {e}")
+        raise Exception(f"Error reading CSV file: {e}")
 
     return answer
 
@@ -112,11 +107,8 @@ def process_table(session, repo_config):
     print(f"added users: {'; '.join(users)}")
     print("invitations: {}".format('\n'.join(invitations)))
 
-def main():
+if __name__ == "__main__":
     args = get_args()
     session = auth(args.token)
     table = read_table(args.file, args.template, args.branch_protection)
     process_table(session, table)
-
-if __name__ == "__main__":
-    main()
