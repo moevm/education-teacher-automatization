@@ -16,7 +16,7 @@ def print_fail(message):
 def print_warning(message):
     print(WARNING_COLOR + message + END_COLOR)
 
-def create_repo_with_settings(session, owner, name, is_private=False, create_readme=False, template=None, branch_protection=None):
+def create_repo_with_settings_forgejo(session, owner, name, is_private=False, create_readme=False, template=None, branch_protection=None):
     repo_url = f"{FORGEJO_API_BASE}/repos/{owner}/{name}"
     response = session.get(repo_url)
     if response.status_code == 200:
@@ -53,7 +53,7 @@ def create_repo_with_settings(session, owner, name, is_private=False, create_rea
     print_fail(f"Error creating repo {owner}/{name}: {error}")
     return None
 
-def give_an_access(session, owner, repo, collaborator, permission='write'):
+def give_an_access_forgejo(session, owner, repo, collaborator, permission='write'):
     url = f"{FORGEJO_API_BASE}/repos/{owner}/{repo}/collaborators/{collaborator}"
     data = {"permission": permission}
     response = session.put(url, json=data)
@@ -66,7 +66,7 @@ def give_an_access(session, owner, repo, collaborator, permission='write'):
         print_fail(f"Error adding {collaborator}: {error}")
         return False
 
-def remove_an_access(session, owner, repo, collaborator):
+def remove_an_access_forgejo(session, owner, repo, collaborator):
     url = f"{FORGEJO_API_BASE}/repos/{owner}/{repo}/collaborators/{collaborator}"
     response = session.delete(url)
     
@@ -77,19 +77,24 @@ def remove_an_access(session, owner, repo, collaborator):
         print(f"Collaborator {collaborator} not found or already removed")
         return False
 
-def change_an_access(session, users, owner, repo, give, pull=False, admin=False):
-    permission = 'admin' if admin else 'read' if pull else 'write'
+def change_an_access_forgejo(session, users, owner, repo, give, pull=False, admin=False):
+    if admin:
+        permission = 'admin'
+    elif pull:
+        permission = 'read'
+    else:
+        permission = 'write'
     for user in users:
         if give:
-            give_an_access(session, owner, repo, user, permission)
+            give_an_access_forgejo(session, owner, repo, user, permission)
         else:
-            remove_an_access(session, owner, repo, user)
+            remove_an_access_forgejo(session, owner, repo, user)
 
-def token_probe_request(session):
+def token_probe_request_forgejo(session):
     response = session.get(f"{FORGEJO_API_BASE}/user")
     return response.status_code
 
-def get_token_from_file(token_path):
+def get_token_from_file_forgejo(token_path):
     try:
         with open(token_path) as f:
             return f.read().strip()
@@ -97,17 +102,18 @@ def get_token_from_file(token_path):
         print_fail(f"Token file not found: {token_path}")
         exit(1)
 
-def auth(token_path):
-    token = get_token_from_file(token_path)
+def auth_forgejo(token_path):
+    token = get_token_from_file_forgejo(token_path)
     session = requests.Session()
     session.headers.update({
         "Authorization": f"token {token}",
         "Content-Type": "application/json"
     })
     
-    if token_probe_request(session) == 200:
+    if token_probe_request_forgejo(session) == 200:
         print("Authorization successful")
         return session
     
     print_fail("Authorization failed: Invalid token")
     exit(1)
+    
