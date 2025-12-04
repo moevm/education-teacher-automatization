@@ -27,7 +27,7 @@ def create_repo_with_settings_forgejo(session, owner, name, is_private=False, cr
         "name": name,
         "private": is_private,
         "auto_init": create_readme,
-        "description": f"Repository {name} in {owner}"
+        "description": f"Repository {name} in {owner}",
     }
     
     if template:
