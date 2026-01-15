@@ -7,14 +7,14 @@
 Примеры использования
 
 Добавление пользователя suiciderabbit в репозиторий github.com/moevm/cs_lectures с правами только на чтение:  
-`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit -p True -t ghp_0XXXXXXXXXXXXXXXXX`  
+`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit -p True -t github_token.txt`  
 Добавление пользователей suiciderabbit и pro100kot в репозиторий github.com/moevm/cs_lectures с правами на запись:  
-`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -t ghp_0XXXXXXXXXXXXXXXXX`  
+`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -t github_token.txt`  
 
 Добавление пользователей suiciderabbit и pro100kot в репозиторий github.com/moevm/cs_lectures с правами администратора:
-`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -a True -t ghp_0XXXXXXXXXXXXXXXXX`  
+`./grant_access_to_github_repo.py -g=moevm/cs_lectures:suiciderabbit,pro100kot -a True -t github_token.txt`  
 
-После ключа `-t` следует указать токен.
+После ключа `-t` следует указать путь до файлика с токеном.
 
 ## get_access_to_github_from_csv.py
 Создает репозитории и добавляет людей в коллабораторы репозитория беря данные csv таблицы.
